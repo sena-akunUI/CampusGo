@@ -16,10 +16,13 @@ class CustomUserAdmin(UserAdmin):
                 "fields": (
                     "faculty",
                     "phone_number",
+                    "saldo",
                 )
             }
         ),
     )
+
+    readonly_fields = ("saldo",)
 
     add_fieldsets = UserAdmin.add_fieldsets + (
         (
@@ -42,6 +45,7 @@ class CustomUserAdmin(UserAdmin):
         "first_name",
         "last_name",
         "faculty",
+        "saldo",
         "is_staff",
         "is_active",
     )
