@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Top-up Saldo - CampusGO</title>
+</head>
+<body>
+    <h1>Top-up Saldo</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Kirim</button>
+    </form>
+
+    <p><a href="{% url 'payments:topup_history' %}">Lihat riwayat top-up</a></p>
+</body>
+</html>
