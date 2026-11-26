@@ -16,6 +16,7 @@
     <table border="1" cellpadding="6">
       <tr>
         <th>No</th>
+        <th>Pesanan</th>
         <th>Jenis</th>
         <th>Status</th>
         <th>Keputusan admin</th>
@@ -24,6 +25,7 @@
       {% for d in disputes %}
         <tr>
           <td>{{ d.id }}</td>
+          <td>{% if d.order %}Order #{{ d.order.id }}{% else %}-{% endif %}</td>
           <td>{{ d.get_category_display }}</td>
           <td>{{ d.get_status_display }}</td>
           <td>{{ d.admin_decision|default:"-" }}</td>
