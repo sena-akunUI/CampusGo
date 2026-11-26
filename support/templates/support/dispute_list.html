@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Laporanku</title>
+</head>
+<body>
+  {# SEMENTARA: ganti dengan extends base.html kalau base template Sena sudah ada #}
+  <h1>Laporanku</h1>
+
+  {% for message in messages %}
+    <p>{{ message }}</p>
+  {% endfor %}
+
+  {% if disputes %}
+    <table border="1" cellpadding="6">
+      <tr>
+        <th>No</th>
+        <th>Jenis</th>
+        <th>Status</th>
+        <th>Keputusan admin</th>
+        <th>Dibuat</th>
+      </tr>
+      {% for d in disputes %}
+        <tr>
+          <td>{{ d.id }}</td>
+          <td>{{ d.get_category_display }}</td>
+          <td>{{ d.get_status_display }}</td>
+          <td>{{ d.admin_decision|default:"-" }}</td>
+          <td>{{ d.created_at|date:"d M Y H:i" }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>Kamu belum punya laporan.</p>
+  {% endif %}
+
+  <p><a href="{% url 'support:dispute_create' %}">Buat laporan baru</a></p>
+</body>
+</html>

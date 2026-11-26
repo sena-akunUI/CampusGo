@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Lapor masalah</title>
+</head>
+<body>
+  {# SEMENTARA: ganti dengan extends base.html kalau base template Sena sudah ada #}
+  <h1>Lapor masalah</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Kirim laporan</button>
+  </form>
+  <p><a href="{% url 'support:dispute_list' %}">Lihat laporanku</a></p>
+</body>
+</html>
