@@ -20,6 +20,13 @@ class Dispute(models.Model):
         on_delete=models.CASCADE,
         related_name="disputes",
     )
+    order = models.ForeignKey(
+        "orders.Order",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="disputes",
+    )
     category = models.CharField(max_length=20, choices=Category.choices)
     reason = models.TextField()
     status = models.CharField(

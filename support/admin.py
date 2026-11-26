@@ -27,7 +27,7 @@ def mark_rejected(modeladmin, request, queryset):
 
 @admin.register(Dispute)
 class DisputeAdmin(admin.ModelAdmin):
-    list_display = ("id", "reporter", "category", "status", "created_at")
+    list_display = ("id", "reporter", "order", "category", "status", "created_at")
     list_filter = ("status", "category")
     search_fields = ("reporter__username", "reason")
     actions = [mark_in_review, mark_resolved, mark_rejected]
@@ -35,7 +35,14 @@ class DisputeAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         # Saat membuka laporan yang sudah ada, isi laporan tidak boleh diubah admin.
         if obj:
-            return ("reporter", "category", "reason", "created_at", "resolved_at")
+            return (
+                "reporter",
+                "order",
+                "category",
+                "reason",
+                "created_at",
+                "resolved_at",
+            )
         return ("created_at",)
 
     def save_model(self, request, obj, form, change):
