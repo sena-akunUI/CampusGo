@@ -1,0 +1,212 @@
+{% load static %}<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Beranda{% endblock %} · CampusGo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script>
+    // Popover API: muat polyfill HANYA kalau browser belum mendukung.
+    if (!Object.hasOwn(HTMLElement.prototype, "popover")) {
+      const s = document.createElement("script");
+      s.src = "https://unpkg.com/@oddbird/popover-polyfill@latest/dist/popover.min.js";
+      document.head.append(s);
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @theme {
+      --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+      --color-brand-50: #ecfdf5;
+      --color-brand-100: #d1fae5;
+      --color-brand-500: #10b981;
+      --color-brand-600: #059669;
+      --color-brand-700: #047857;
+    }
+
+    /*
+      Gaya dasar untuk elemen TANPA class.
+      Halaman lama (form.as_p, tabel polos) otomatis ikut rapi setelah extends base.html.
+      Elemen yang sudah diberi class Tailwind tidak terpengaruh.
+    */
+    @layer base {
+      main h1:not([class]) { @apply mb-6 text-2xl font-bold tracking-tight text-balance text-slate-900; }
+      main h2:not([class]) { @apply mt-8 mb-3 text-lg font-semibold text-slate-900; }
+      main p:not([class]) { @apply mb-3 leading-relaxed text-pretty; }
+      main ul:not([class]) { @apply mb-3 list-disc ps-5; }
+      main a:not([class]) { @apply font-medium text-brand-700 underline-offset-2 hover:underline; }
+      main label:not([class]) { @apply mb-1.5 block text-sm font-semibold text-slate-800; }
+      main button:not([class]), main input[type=submit]:not([class]) {
+        @apply min-h-12 cursor-pointer rounded-lg bg-brand-600 px-5 text-base font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-wait disabled:opacity-60;
+      }
+      main form:not([class]) > p { @apply mb-5; }
+      main form:not([class]) > :is(button, input[type=submit]):not([class]) { @apply mt-2; }
+      main table:not([class]) {
+        @apply mb-6 w-full overflow-hidden rounded-xl border border-slate-200 bg-white text-sm shadow-sm;
+        border-collapse: separate; border-spacing: 0;
+      }
+      main th { @apply border-b border-slate-200 bg-slate-50 px-4 py-3 text-start font-semibold text-slate-700; }
+      main td { @apply border-b border-slate-100 px-4 py-3 align-top; }
+      main tr:last-child td { @apply border-b-0; }
+      main .errorlist { @apply mt-1.5 list-none ps-0 text-sm text-red-700; }
+      main .helptext { @apply mt-1.5 block text-xs text-slate-600; }
+    }
+
+    /* Komponen bersama: cukup tulis class="card", "btn-primary", dst. */
+    @layer components {
+      .card { @apply rounded-2xl border border-slate-200 bg-white p-6 shadow-sm; }
+      .btn-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-wait disabled:opacity-60; }
+      .btn-ghost { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-100; }
+      .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+    }
+  </style>
+  <style>
+    /* ===== Form: ukuran ≥16px (cegah zoom iOS), border kontras, status :user-invalid ===== */
+    main :is(input:not([type=checkbox], [type=radio], [type=hidden], [type=submit], [type=button]), select, textarea):where(:not([class])) {
+      inline-size: 100%;
+      min-block-size: 3rem;
+      padding: 0.625rem 0.875rem;
+      font: inherit;
+      font-size: max(1rem, 1em);
+      color: #0f172a;
+      background: #fff;
+      border: 1px solid #64748b;          /* kontras ≥ 3:1 terhadap putih */
+      border-radius: 0.5rem;
+    }
+    main textarea:where(:not([class])) { min-block-size: 6rem; }
+    main input[type=file]:where(:not([class])) { padding: 0.5rem; background: #f8fafc; cursor: pointer; }
+    main :is(input, select, textarea):where(:not([class])):focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--color-brand-600) 45%, transparent);
+      outline-offset: 1px;
+      border-color: var(--color-brand-600);
+    }
+    main :is(input, select, textarea):is(:user-invalid, [aria-invalid="true"]) { border-color: #b91c1c; background: #fef2f2; }
+    .client-error { display: none; }
+    .field:has(:user-invalid) .client-error:not(:empty) { display: block; }
+    .field:has(:user-invalid) .client-error:not(:empty)::before { content: "⚠️ "; }
+    main input[type=password] { padding-inline-end: 4.5rem; }
+
+    /* Fokus keyboard yang selalu terlihat */
+    :focus-visible { outline: 3px solid var(--color-brand-600); outline-offset: 2px; }
+
+    .sr-only:where(:not(:focus-within, :active)) {
+      position: absolute !important; inline-size: 1px !important; block-size: 1px !important;
+      margin: -1px !important; padding: 0 !important; overflow: hidden !important;
+      clip-path: inset(50%) !important; white-space: nowrap !important; border: 0 !important;
+    }
+
+    /* ===== Navbar responsif (satu <nav>, popover saat sempit, inline saat muat) ===== */
+    .header-inner > * { flex-shrink: 0; white-space: nowrap; }
+    .site-header.is-measuring * { transition: none !important; }
+
+    .nav-link {
+      display: flex; align-items: center; min-block-size: 2.75rem;
+      padding-inline: 0.75rem; border-radius: 0.5rem;
+      color: #475569; font-weight: 500; text-decoration: none;
+    }
+    .nav-link:hover { background: #f1f5f9; color: #0f172a; }
+    .nav-link[aria-current="page"] {
+      background: var(--color-brand-50); color: var(--color-brand-700); font-weight: 700;
+      box-shadow: inset 0 -3px 0 var(--color-brand-600);   /* penanda bukan hanya warna */
+    }
+    @media (forced-colors: active) {
+      .nav-link[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 3px; }
+    }
+
+    /* Default (tanpa JS / layar sempit): menu = popover di bawah tombol "Menu" */
+    .menu-button { anchor-name: --menu-button; }
+    .site-menu {
+      position: fixed;
+      inset: auto;
+      inset-block-start: 4.5rem;                         /* fallback tanpa anchor positioning */
+      inset-block-start: anchor(--menu-button bottom);
+      inset-inline-end: 1rem;
+      inline-size: min(80dvw, 20rem);
+      max-inline-size: calc(100dvw - 2rem);
+      block-size: fit-content;
+      max-block-size: calc(100dvh - 6rem);
+      margin: 0.5rem 0 0;
+      overflow: auto;
+      padding: 0.5rem;
+      list-style: none;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 30px -10px rgb(15 23 42 / 0.25);
+    }
+    .site-menu:is(:popover-open, .\:popover-open) { display: grid; gap: 0.125rem; }
+
+    /* Lebar: tombol "Menu" disembunyikan, daftar link tampil sebaris */
+    .site-header.is-wide .menu-button { display: none; }
+    .site-header.is-wide .site-menu {
+      position: static; display: flex; align-items: center; gap: 0.25rem;
+      inline-size: auto; max-inline-size: none; block-size: auto; max-block-size: none;
+      overflow: visible; margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none;
+    }
+    .site-header.is-wide .site-menu::backdrop { display: none; }
+
+    /* Menu akun: popover yang menempel ke tombol avatar */
+    .account-menu {
+      position: absolute;
+      position-area: block-end span-inline-start;
+      position-try-fallbacks: flip-block, flip-inline;
+      inset: auto; height: auto;
+      inline-size: 16rem; margin: 0.5rem 0 0; padding: 0.5rem;
+      background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem;
+      box-shadow: 0 10px 30px -10px rgb(15 23 42 / 0.25);
+    }
+    @supports not (position-area: block-end) {
+      .account-menu { position: fixed; margin: 0; }
+    }
+
+    @supports not selector(:popover-open) {
+      [popover]:not(.\:popover-open) { display: none; }
+      .site-header.is-wide .site-menu { display: flex; }
+    }
+
+    /* Animasi halus, hanya kalau pengguna tidak minta gerakan dikurangi */
+    @media (prefers-reduced-motion: no-preference) {
+      :is(.site-menu, .account-menu)[popover] {
+        transition: opacity 150ms ease, translate 150ms ease, display 150ms, overlay 150ms;
+        transition-behavior: allow-discrete;
+      }
+      :is(.site-menu, .account-menu)[popover]:not(:popover-open) { opacity: 0; translate: 0 -4px; }
+      @starting-style {
+        :is(.site-menu, .account-menu)[popover]:popover-open { opacity: 0; translate: 0 -4px; }
+      }
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="flex min-h-screen flex-col bg-slate-50 font-sans text-slate-800 antialiased">
+  <a href="#konten" class="sr-only fixed start-4 top-4 z-50 rounded-lg bg-white px-4 py-2 font-semibold shadow">Lewati ke konten</a>
+  {% include "partials/navbar.html" %}
+
+  {% if messages %}
+  <div class="mx-auto w-full max-w-6xl space-y-2 px-4 pt-4" role="status">
+    {% for m in messages %}
+    <div class="rounded-lg border px-4 py-3 text-sm
+      {% if 'error' in m.tags %}border-red-300 bg-red-50 text-red-800
+      {% elif 'success' in m.tags %}border-brand-100 bg-brand-50 text-brand-700
+      {% elif 'warning' in m.tags %}border-amber-300 bg-amber-50 text-amber-900
+      {% else %}border-slate-200 bg-white{% endif %}">
+      {% if 'error' in m.tags %}⚠️{% elif 'success' in m.tags %}✅{% elif 'warning' in m.tags %}⚠️{% else %}ℹ️{% endif %} {{ m }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <main id="konten" class="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+    {% block page_header %}{% endblock %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-t border-slate-200 py-6 text-center text-xs text-slate-600">
+    © CampusGo · Kelompok 17 · DDP1 Fasilkom UI
+  </footer>
+  <script src="{% static 'campusgo/campusgo.js' %}" defer></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

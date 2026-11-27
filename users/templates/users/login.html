@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Masuk{% endblock %}
+{% block content %}
+<div class="mx-auto grid max-w-4xl items-center gap-10 py-6 md:grid-cols-2">
+  <div class="hidden md:block">
+    <span class="badge bg-brand-100 text-brand-700">Jastip &amp; titip antar kampus</span>
+    <p class="mt-4 text-4xl font-extrabold leading-tight tracking-tight text-slate-900">
+      Titip apa aja,<br>diantar teman <span class="text-brand-600">sekampus</span>.
+    </p>
+    <p class="mt-4 text-slate-600">Dana ditahan aman oleh sistem sampai barang sampai. Ada masalah? Admin siap bantu.</p>
+  </div>
+
+  <div class="card p-8">
+    <h1 id="form-title" class="text-xl font-bold text-slate-900">Masuk ke CampusGo</h1>
+    <p class="mt-1 mb-6 text-sm text-slate-600">Belum punya akun? <a href="{% url 'users:register' %}" class="font-semibold text-brand-600 hover:underline">Daftar gratis</a></p>
+    <form method="post" aria-labelledby="form-title">
+      {% csrf_token %}
+      {% include "partials/form_fields.html" with form=form %}
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+      <button type="submit" class="btn-primary mt-1 min-h-12 w-full text-base">Masuk</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
