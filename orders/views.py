@@ -1,7 +1,9 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from .forms import ListingForm
 from .models import Listing, Order
@@ -56,6 +58,80 @@ def listing_create(request):
     else:
         form = ListingForm(initial={"type": request.GET.get("mode")})
     return render(request, "orders/listing_form.html", {"form": form})
+
+
+@login_required(login_url=LOGIN_URL)
+@require_POST
+def listing_take(request, pk):
+    """Ambil postingan Request, atau titip pada slot Jastip -> buat Order."""
+    listing = get_object_or_404(Listing, pk=pk, status=Listing.Status.OPEN)
+    if listing.creator == request.user:
+        messages.error(request, "Kamu tidak bisa mengambil postinganmu sendiri.")
+        return redirect("orders:listing_list")
+
+    if listing.type == Listing.Type.REQUEST:
+        # Pembuat postingan = pemesan; yang mengambil = penyedia jasa.
+        requester, provider = listing.creator, request.user
+    else:
+        # Pembuat postingan = penyedia (jastip); yang menitip = pemesan.
+        requester, provider = request.user, listing.creator
+
+    Order.objects.create(
+        listing=listing,
+        requester=requester,
+        provider=provider,
+        amount=listing.fee,
+        status=Order.Status.ACCEPTED,
+    )
+    # TODO (escrow, nunggu fungsi dari Tito): tahan dana pemesan di sini.
+
+    # Request cuma bisa diambil satu orang; slot Jastip tetap terbuka.
+    if listing.type == Listing.Type.REQUEST:
+        listing.status = Listing.Status.CLOSED
+        listing.save(update_fields=["status"])
+
+    messages.success(request, "Pesanan dibuat. Pantau di My Order.")
+    return redirect("orders:my_orders")
+
+
+@login_required(login_url=LOGIN_URL)
+@require_POST
+def order_action(request, pk, action):
+    """Ubah status pesanan: mulai antar / selesai / batal."""
+    order = get_object_or_404(Order, pk=pk)
+    user = request.user
+    if user not in (order.requester, order.provider):
+        raise PermissionDenied
+
+    if (
+        action == "mulai"
+        and user == order.provider
+        and order.status == Order.Status.ACCEPTED
+    ):
+        order.status = Order.Status.ON_DELIVERY
+        text = "Pesanan dalam perjalanan."
+    elif (
+        action == "selesai"
+        and user == order.requester
+        and order.status == Order.Status.ON_DELIVERY
+    ):
+        order.status = Order.Status.COMPLETED
+        text = "Pesanan selesai."
+        # TODO (escrow, nunggu fungsi dari Tito): teruskan dana ke penyedia di sini.
+    elif action == "batal" and order.status in (
+        Order.Status.PENDING,
+        Order.Status.ACCEPTED,
+    ):
+        order.status = Order.Status.CANCELLED
+        text = "Pesanan dibatalkan."
+        # TODO (escrow, nunggu fungsi dari Tito): kembalikan dana ke pemesan di sini.
+    else:
+        messages.error(request, "Aksi tidak bisa dilakukan untuk pesanan ini.")
+        return redirect("orders:my_orders")
+
+    order.save(update_fields=["status", "updated_at"])
+    messages.success(request, text)
+    return redirect("orders:my_orders")
 
 
 @login_required(login_url=LOGIN_URL)
