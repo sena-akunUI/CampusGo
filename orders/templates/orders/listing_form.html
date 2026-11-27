@@ -1,17 +1,13 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="utf-8">
-  <title>Buat postingan</title>
-</head>
-<body>
-  {# SEMENTARA: ganti dengan extends base.html kalau base template Sena sudah ada #}
+{% extends "base.html" %}
+{% block title %}Buat postingan{% endblock %}
+{% block content %}
+<div class="card mx-auto max-w-xl">
   <h1>Buat postingan</h1>
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Kirim</button>
   </form>
-  <p><a href="{% url 'orders:listing_list' %}">Kembali ke papan</a></p>
-</body>
-</html>
+  <p class="mt-4"><a href="{% url 'orders:listing_list' %}">Kembali ke papan</a></p>
+</div>
+{% endblock %}
