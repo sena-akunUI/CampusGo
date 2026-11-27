@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Papan CampusGO</title>
+</head>
+<body>
+  {# SEMENTARA: ganti dengan extends base.html kalau base template Sena sudah ada #}
+  <h1>Papan CampusGO</h1>
+
+  {% for message in messages %}
+    <p>{{ message }}</p>
+  {% endfor %}
+
+  <p>
+    {% for value, label in modes %}
+      {% if value == mode %}
+        <strong>[{{ label }}]</strong>
+      {% else %}
+        <a href="?mode={{ value }}{% if q %}&q={{ q|urlencode }}{% endif %}">{{ label }}</a>
+      {% endif %}
+    {% endfor %}
+  </p>
+
+  <form method="get">
+    <input type="hidden" name="mode" value="{{ mode }}">
+    <input type="text" name="q" value="{{ q }}" placeholder="Cari lokasi asal atau tujuan">
+    <button type="submit">Cari</button>
+  </form>
+
+  {% if listings %}
+    <table border="1" cellpadding="6">
+      <tr>
+        <th>Rute</th>
+        <th>Deskripsi</th>
+        <th>Upah</th>
+        <th>Dibuat oleh</th>
+        <th>Waktu</th>
+      </tr>
+      {% for l in listings %}
+        <tr>
+          <td>{{ l.origin }} &rarr; {{ l.destination }}</td>
+          <td>{{ l.description }}</td>
+          <td>Rp {{ l.fee }}</td>
+          <td>{{ l.creator }}</td>
+          <td>{{ l.created_at|date:"d M Y H:i" }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>Belum ada postingan{% if q %} untuk "{{ q }}"{% endif %}.</p>
+  {% endif %}
+
+  <p>
+    <a href="{% url 'orders:listing_create' %}?mode={{ mode }}">Buat postingan</a> |
+    <a href="{% url 'orders:my_orders' %}">My Order</a> |
+    <a href="{% url 'support:dispute_list' %}">Laporanku</a>
+  </p>
+</body>
+</html>
