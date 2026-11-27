@@ -36,6 +36,7 @@
         <th>Upah</th>
         <th>Dibuat oleh</th>
         <th>Waktu</th>
+        <th>Aksi</th>
       </tr>
       {% for l in listings %}
         <tr>
@@ -44,6 +45,16 @@
           <td>Rp {{ l.fee }}</td>
           <td>{{ l.creator }}</td>
           <td>{{ l.created_at|date:"d M Y H:i" }}</td>
+          <td>
+            {% if l.creator == request.user %}
+              (postinganmu)
+            {% else %}
+              <form method="post" action="{% url 'orders:listing_take' l.id %}">
+                {% csrf_token %}
+                <button type="submit">{% if mode == "REQUEST" %}Ambil{% else %}Titip{% endif %}</button>
+              </form>
+            {% endif %}
+          </td>
         </tr>
       {% endfor %}
     </table>

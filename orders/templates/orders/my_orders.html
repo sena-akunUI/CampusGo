@@ -8,6 +8,10 @@
   {# SEMENTARA: ganti dengan extends base.html kalau base template Sena sudah ada #}
   <h1>My Order</h1>
 
+  {% for message in messages %}
+    <p>{{ message }}</p>
+  {% endfor %}
+
   {% for title, orders in sections %}
     <h2>{{ title }}</h2>
     {% if orders %}
@@ -31,7 +35,24 @@
             <td>Rp {{ o.amount }}</td>
             <td>{{ o.get_status_display }}</td>
             <td>{{ o.created_at|date:"d M Y H:i" }}</td>
-            <td><a href="{% url 'support:dispute_create' %}?order={{ o.id }}">Laporkan masalah</a></td>
+            <td>
+              {% if o.provider == request.user and o.status == "ACCEPTED" %}
+                <form method="post" action="{% url 'orders:order_action' o.id 'mulai' %}">
+                  {% csrf_token %}<button type="submit">Mulai antar</button>
+                </form>
+              {% endif %}
+              {% if o.requester == request.user and o.status == "ON_DELIVERY" %}
+                <form method="post" action="{% url 'orders:order_action' o.id 'selesai' %}">
+                  {% csrf_token %}<button type="submit">Selesai</button>
+                </form>
+              {% endif %}
+              {% if o.status == "PENDING" or o.status == "ACCEPTED" %}
+                <form method="post" action="{% url 'orders:order_action' o.id 'batal' %}">
+                  {% csrf_token %}<button type="submit">Batalkan</button>
+                </form>
+              {% endif %}
+              <a href="{% url 'support:dispute_create' %}?order={{ o.id }}">Laporkan masalah</a>
+            </td>
           </tr>
         {% endfor %}
       </table>
@@ -39,5 +60,7 @@
       <p>Belum ada.</p>
     {% endif %}
   {% endfor %}
+
+  <p><a href="{% url 'orders:listing_list' %}">Kembali ke papan</a></p>
 </body>
 </html>
