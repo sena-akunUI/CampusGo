@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>My Order</title>
+</head>
+<body>
+  {# SEMENTARA: ganti dengan extends base.html kalau base template Sena sudah ada #}
+  <h1>My Order</h1>
+
+  {% for title, orders in sections %}
+    <h2>{{ title }}</h2>
+    {% if orders %}
+      <table border="1" cellpadding="6">
+        <tr>
+          <th>No</th>
+          <th>Peran</th>
+          <th>Rute</th>
+          <th>Jenis</th>
+          <th>Jumlah</th>
+          <th>Status</th>
+          <th>Dibuat</th>
+          <th>Aksi</th>
+        </tr>
+        {% for o in orders %}
+          <tr>
+            <td>{{ o.id }}</td>
+            <td>{% if o.requester == request.user %}Pemesan{% else %}Penyedia{% endif %}</td>
+            <td>{{ o.listing.origin }} &rarr; {{ o.listing.destination }}</td>
+            <td>{{ o.listing.get_type_display }}</td>
+            <td>Rp {{ o.amount }}</td>
+            <td>{{ o.get_status_display }}</td>
+            <td>{{ o.created_at|date:"d M Y H:i" }}</td>
+            <td><a href="{% url 'support:dispute_create' %}?order={{ o.id }}">Laporkan masalah</a></td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p>Belum ada.</p>
+    {% endif %}
+  {% endfor %}
+</body>
+</html>

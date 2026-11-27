@@ -26,7 +26,10 @@ def dispute_create(request):
             messages.success(request, "Laporan terkirim.")
             return redirect("support:dispute_list")
     else:
-        form = DisputeForm(user=request.user)
+        form = DisputeForm(
+            user=request.user,
+            initial={"order": request.GET.get("order")},
+        )
     return render(request, "support/dispute_form.html", {"form": form})
 
 
