@@ -1,71 +1,64 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="utf-8">
-  <title>Papan CampusGO</title>
-</head>
-<body>
-  {# SEMENTARA: ganti dengan extends base.html kalau base template Sena sudah ada #}
-  <h1>Papan CampusGO</h1>
+{% extends "base.html" %}
+{% block title %}Papan{% endblock %}
+{% block content %}
+<h1>Papan CampusGO</h1>
 
-  {% for message in messages %}
-    <p>{{ message }}</p>
+<nav aria-label="Mode papan" class="mb-4 flex flex-wrap gap-2">
+  {% for value, label in modes %}
+    {% if value == mode %}
+      <span aria-current="page" class="btn-primary">{{ label }}</span>
+    {% else %}
+      <a href="?mode={{ value }}{% if q %}&q={{ q|urlencode }}{% endif %}" class="btn-ghost border border-slate-300">{{ label }}</a>
+    {% endif %}
   {% endfor %}
+</nav>
 
-  <p>
-    {% for value, label in modes %}
-      {% if value == mode %}
-        <strong>[{{ label }}]</strong>
-      {% else %}
-        <a href="?mode={{ value }}{% if q %}&q={{ q|urlencode }}{% endif %}">{{ label }}</a>
-      {% endif %}
-    {% endfor %}
-  </p>
-
-  <form method="get">
+<search>
+  <form method="get" class="mb-6 flex gap-2">
     <input type="hidden" name="mode" value="{{ mode }}">
-    <input type="text" name="q" value="{{ q }}" placeholder="Cari lokasi asal atau tujuan">
+    <label for="q" class="sr-only">Cari lokasi</label>
+    <input type="text" id="q" name="q" value="{{ q }}" placeholder="Cari lokasi asal atau tujuan">
     <button type="submit">Cari</button>
   </form>
+</search>
 
-  {% if listings %}
-    <table border="1" cellpadding="6">
+{% if listings %}
+  <table>
+    <tr>
+      <th>Rute</th>
+      <th>Deskripsi</th>
+      <th>Upah</th>
+      <th>Dibuat oleh</th>
+      <th>Waktu</th>
+      <th>Aksi</th>
+    </tr>
+    {% for l in listings %}
       <tr>
-        <th>Rute</th>
-        <th>Deskripsi</th>
-        <th>Upah</th>
-        <th>Dibuat oleh</th>
-        <th>Waktu</th>
-        <th>Aksi</th>
+        <td>{{ l.origin }} &rarr; {{ l.destination }}</td>
+        <td>{{ l.description }}</td>
+        <td>Rp {{ l.fee }}</td>
+        <td>{{ l.creator }}</td>
+        <td>{{ l.created_at|date:"d M Y H:i" }}</td>
+        <td>
+          {% if l.creator == request.user %}
+            <span class="badge bg-slate-100 text-slate-800">Postinganmu</span>
+          {% else %}
+            <form method="post" action="{% url 'orders:listing_take' l.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn-primary">{% if mode == "REQUEST" %}Ambil{% else %}Titip{% endif %}</button>
+            </form>
+          {% endif %}
+        </td>
       </tr>
-      {% for l in listings %}
-        <tr>
-          <td>{{ l.origin }} &rarr; {{ l.destination }}</td>
-          <td>{{ l.description }}</td>
-          <td>Rp {{ l.fee }}</td>
-          <td>{{ l.creator }}</td>
-          <td>{{ l.created_at|date:"d M Y H:i" }}</td>
-          <td>
-            {% if l.creator == request.user %}
-              (postinganmu)
-            {% else %}
-              <form method="post" action="{% url 'orders:listing_take' l.id %}">
-                {% csrf_token %}
-                <button type="submit">{% if mode == "REQUEST" %}Ambil{% else %}Titip{% endif %}</button>
-              </form>
-            {% endif %}
-          </td>
-        </tr>
-      {% endfor %}
-    </table>
-  {% else %}
-    <p>Belum ada postingan{% if q %} untuk "{{ q }}"{% endif %}.</p>
-  {% endif %}
+    {% endfor %}
+  </table>
+{% else %}
+  <p>Belum ada postingan{% if q %} untuk "{{ q }}"{% endif %}.</p>
+{% endif %}
 
-  <p>
-    <a href="{% url 'orders:listing_create' %}?mode={{ mode }}">Buat postingan</a> |
-    <a href="{% url 'orders:my_orders' %}">My Order</a> |
-    <a href="{% url 'support:dispute_list' %}">Laporanku</a>
-  </p>
-</body>
-</html>
+<div class="mt-6 flex flex-wrap gap-2">
+  <a href="{% url 'orders:listing_create' %}?mode={{ mode }}" class="btn-primary">Buat postingan</a>
+  <a href="{% url 'orders:my_orders' %}" class="btn-ghost border border-slate-300">My Order</a>
+  <a href="{% url 'support:dispute_list' %}" class="btn-ghost border border-slate-300">Laporanku</a>
+</div>
+{% endblock %}

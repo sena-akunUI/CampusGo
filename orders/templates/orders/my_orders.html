@@ -1,66 +1,58 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="utf-8">
-  <title>My Order</title>
-</head>
-<body>
-  {# SEMENTARA: ganti dengan extends base.html kalau base template Sena sudah ada #}
-  <h1>My Order</h1>
+{% extends "base.html" %}
+{% block title %}My Order{% endblock %}
+{% block content %}
+<h1>My Order</h1>
 
-  {% for message in messages %}
-    <p>{{ message }}</p>
-  {% endfor %}
-
-  {% for title, orders in sections %}
-    <h2>{{ title }}</h2>
-    {% if orders %}
-      <table border="1" cellpadding="6">
+{% for title, orders in sections %}
+  <h2>{{ title }}</h2>
+  {% if orders %}
+    <table>
+      <tr>
+        <th>No</th>
+        <th>Peran</th>
+        <th>Rute</th>
+        <th>Jenis</th>
+        <th>Jumlah</th>
+        <th>Status</th>
+        <th>Dibuat</th>
+        <th>Aksi</th>
+      </tr>
+      {% for o in orders %}
         <tr>
-          <th>No</th>
-          <th>Peran</th>
-          <th>Rute</th>
-          <th>Jenis</th>
-          <th>Jumlah</th>
-          <th>Status</th>
-          <th>Dibuat</th>
-          <th>Aksi</th>
-        </tr>
-        {% for o in orders %}
-          <tr>
-            <td>{{ o.id }}</td>
-            <td>{% if o.requester == request.user %}Pemesan{% else %}Penyedia{% endif %}</td>
-            <td>{{ o.listing.origin }} &rarr; {{ o.listing.destination }}</td>
-            <td>{{ o.listing.get_type_display }}</td>
-            <td>Rp {{ o.amount }}</td>
-            <td>{{ o.get_status_display }}</td>
-            <td>{{ o.created_at|date:"d M Y H:i" }}</td>
-            <td>
+          <td>{{ o.id }}</td>
+          <td>{% if o.requester == request.user %}Pemesan{% else %}Penyedia{% endif %}</td>
+          <td>{{ o.listing.origin }} &rarr; {{ o.listing.destination }}</td>
+          <td>{{ o.listing.get_type_display }}</td>
+          <td>Rp {{ o.amount }}</td>
+          <td><span class="badge bg-slate-100 text-slate-800">{{ o.get_status_display }}</span></td>
+          <td>{{ o.created_at|date:"d M Y H:i" }}</td>
+          <td>
+            <div class="flex flex-wrap items-center gap-2">
               {% if o.provider == request.user and o.status == "ACCEPTED" %}
                 <form method="post" action="{% url 'orders:order_action' o.id 'mulai' %}">
-                  {% csrf_token %}<button type="submit">Mulai antar</button>
+                  {% csrf_token %}<button type="submit" class="btn-primary">Mulai antar</button>
                 </form>
               {% endif %}
               {% if o.requester == request.user and o.status == "ON_DELIVERY" %}
                 <form method="post" action="{% url 'orders:order_action' o.id 'selesai' %}">
-                  {% csrf_token %}<button type="submit">Selesai</button>
+                  {% csrf_token %}<button type="submit" class="btn-primary">Selesai</button>
                 </form>
               {% endif %}
               {% if o.status == "PENDING" or o.status == "ACCEPTED" %}
                 <form method="post" action="{% url 'orders:order_action' o.id 'batal' %}">
-                  {% csrf_token %}<button type="submit">Batalkan</button>
+                  {% csrf_token %}<button type="submit" class="btn-ghost border border-slate-300">Batalkan</button>
                 </form>
               {% endif %}
               <a href="{% url 'support:dispute_create' %}?order={{ o.id }}">Laporkan masalah</a>
-            </td>
-          </tr>
-        {% endfor %}
-      </table>
-    {% else %}
-      <p>Belum ada.</p>
-    {% endif %}
-  {% endfor %}
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>Belum ada.</p>
+  {% endif %}
+{% endfor %}
 
-  <p><a href="{% url 'orders:listing_list' %}">Kembali ke papan</a></p>
-</body>
-</html>
+<a href="{% url 'orders:listing_list' %}" class="btn-ghost border border-slate-300">Kembali ke papan</a>
+{% endblock %}

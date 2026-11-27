@@ -8,9 +8,6 @@ from django.views.decorators.http import require_POST
 from .forms import ListingForm
 from .models import Listing, Order
 
-# Sementara: pakai login admin. Ganti ke halaman login Sena kalau sudah ada.
-LOGIN_URL = "/admin/login/"
-
 # Status yang dianggap "masih berjalan"; sisanya masuk riwayat.
 ONGOING = [
     Order.Status.PENDING,
@@ -45,7 +42,7 @@ def listing_list(request):
     return render(request, "orders/listing_list.html", context)
 
 
-@login_required(login_url=LOGIN_URL)
+@login_required
 def listing_create(request):
     if request.method == "POST":
         form = ListingForm(request.POST)
@@ -60,7 +57,7 @@ def listing_create(request):
     return render(request, "orders/listing_form.html", {"form": form})
 
 
-@login_required(login_url=LOGIN_URL)
+@login_required
 @require_POST
 def listing_take(request, pk):
     """Ambil postingan Request, atau titip pada slot Jastip -> buat Order."""
@@ -94,7 +91,7 @@ def listing_take(request, pk):
     return redirect("orders:my_orders")
 
 
-@login_required(login_url=LOGIN_URL)
+@login_required
 @require_POST
 def order_action(request, pk, action):
     """Ubah status pesanan: mulai antar / selesai / batal."""
@@ -134,7 +131,7 @@ def order_action(request, pk, action):
     return redirect("orders:my_orders")
 
 
-@login_required(login_url=LOGIN_URL)
+@login_required
 def my_orders(request):
     orders = (
         Order.objects.filter(
