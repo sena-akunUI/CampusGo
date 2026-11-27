@@ -1,0 +1,49 @@
+{% load form_a11y %}
+{% comment %}
+  Render semua field form dengan gaya & aksesibilitas seragam.
+  Pakai: {% include "partials/form_fields.html" with form=form %}
+  Opsional: with ... grid=True -> dua kolom di layar lebar.
+{% endcomment %}
+{% if form.non_field_errors %}
+<div role="alert" class="mb-5 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">
+  {% for e in form.non_field_errors %}<p>⚠️ {{ e }}</p>{% endfor %}
+</div>
+{% endif %}
+{% for field in form.hidden_fields %}{{ field }}{% endfor %}
+{% for field in form.visible_fields %}
+<div class="field mb-5">
+  <label for="{{ field.id_for_label }}" class="mb-1.5 block text-sm font-semibold text-slate-800">
+    {{ field.label }}{% if field.field.required %} <span aria-hidden="true" class="text-red-600">*</span>{% else %} <span class="font-normal text-slate-500">(opsional)</span>{% endif %}
+  </label>
+
+  {% if field.widget_type == "password" %}
+  <div class="relative">
+    {{ field|a11y }}
+    <button type="button" data-password-toggle="{{ field.id_for_label }}" aria-pressed="false"
+            aria-label="Tampilkan password" aria-describedby="password-toggle-warning"
+            class="absolute inset-y-0 end-0 my-1 me-1 rounded-md px-3 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+      Lihat
+    </button>
+  </div>
+  <span id="password-toggle-warning" class="sr-only">Peringatan: password akan terlihat di layar.</span>
+  {% else %}
+    {{ field|a11y }}
+  {% endif %}
+
+  {# Error dari browser (muncul lewat :user-invalid, teks diisi campusgo.js) #}
+  <p id="{{ field.id_for_label }}-client-error" class="client-error mt-1.5 text-sm text-red-700"></p>
+
+  {# Error dari server (Django) #}
+  {% if field.errors %}
+  <div id="{{ field.id_for_label }}-server-error" class="mt-1.5 text-sm text-red-700">
+    {% for e in field.errors %}<p>⚠️ {{ e }}</p>{% endfor %}
+  </div>
+  {% endif %}
+
+  {% if field.help_text %}
+  <div id="{{ field.id_for_label }}-help" class="mt-1.5 text-xs leading-relaxed text-slate-600 [&_li]:ms-4 [&_ul]:list-disc">
+    {{ field.help_text|safe }}
+  </div>
+  {% endif %}
+</div>
+{% endfor %}

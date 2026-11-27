@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Profil{% endblock %}
+{% block content %}
+{% url 'payments:topup_create' as topup_url %}
+{% url 'orders:my_orders' as my_orders_url %}
+{% url 'support:dispute_list' as disputes_url %}
+<div class="grid gap-6 lg:grid-cols-3">
+  <aside class="space-y-6">
+    <div class="card text-center">
+      <div class="mx-auto grid h-20 w-20 place-items-center rounded-full bg-brand-100 text-3xl font-bold text-brand-700">
+        {{ user.username|slice:":1"|upper }}
+      </div>
+      <p class="mt-4 text-lg font-bold text-slate-900">{{ user.get_full_name|default:user.username }}</p>
+      <p class="text-sm text-slate-600">@{{ user.username }}</p>
+      {% if user.faculty %}<span class="badge mt-3 bg-slate-100 text-slate-700">{{ user.faculty }}</span>{% endif %}
+      {% if user.is_staff %}<span class="badge mt-3 bg-amber-100 text-amber-800">Admin</span>{% endif %}
+      <p class="mt-4 text-xs text-slate-600">Bergabung {{ user.date_joined|date:"d M Y" }}</p>
+    </div>
+
+    <div class="card bg-gradient-to-br from-brand-600 to-brand-700 text-white">
+      <p class="text-sm text-brand-100">Saldo CampusGo</p>
+      <p class="mt-1 text-3xl font-extrabold tracking-tight">Rp {{ user.saldo|intcomma }}</p>
+      {% if topup_url %}<a href="{{ topup_url }}" class="mt-4 inline-flex rounded-lg bg-white/15 px-3 py-1.5 text-sm font-semibold hover:bg-white/25">+ Top-up</a>{% endif %}
+    </div>
+
+    <div class="card space-y-1 p-3 text-sm">
+      {% if my_orders_url %}<a href="{{ my_orders_url }}" class="nav-link">📦 Pesanan saya</a>{% endif %}
+      {% if disputes_url %}<a href="{{ disputes_url }}" class="nav-link">🛟 Laporan / bantuan saya</a>{% endif %}
+    </div>
+  </aside>
+
+  <section class="card lg:col-span-2" aria-labelledby="form-title">
+    <h1 id="form-title" class="text-xl font-bold text-slate-900">Edit profil</h1>
+    <p class="mt-1 mb-6 text-sm text-slate-600">Info ini terlihat oleh pengguna lain saat bertransaksi.</p>
+    <form method="post" aria-labelledby="form-title">
+      {% csrf_token %}
+      <div class="grid gap-x-4 sm:grid-cols-2">
+        {% include "partials/form_fields.html" with form=form %}
+      </div>
+      <button type="submit" class="btn-primary min-h-12 text-base">Simpan perubahan</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

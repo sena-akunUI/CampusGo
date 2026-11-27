@@ -18,9 +18,16 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import RedirectView
+
+admin.site.site_header = "CampusGo Admin"
+admin.site.site_title = "CampusGo Admin"
+admin.site.index_title = "Panel admin & penyelesaian masalah"
 
 urlpatterns = [
+    path('', RedirectView.as_view(pattern_name='orders:listing_list'), name='home'),
     path('admin/', admin.site.urls),
+    path('akun/', include('users.urls')),
     path('support/', include('support.urls')),
     path('payments/', include('payments.urls')),
     path('orders/', include('orders.urls')),

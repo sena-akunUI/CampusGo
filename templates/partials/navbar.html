@@ -1,0 +1,89 @@
+{% load humanize %}
+{% comment %}
+  Navbar global (pemilik: Sena).
+  - Satu <nav>: jadi popover "Menu" saat sempit, sebaris saat muat (diatur campusgo.js).
+  - Halaman aktif ditandai aria-current="page".
+  - Link ke app lain pakai {% url '...' as var %}: kalau nama URL belum ada, link-nya
+    disembunyikan, bukan bikin seluruh situs error (NoReverseMatch).
+  Mau tambah menu? Kirim nama URL (app_name:name) ke Sena.
+{% endcomment %}
+{% url 'orders:listing_list' as board_url %}
+{% url 'orders:listing_create' as create_url %}
+{% url 'orders:my_orders' as my_orders_url %}
+{% url 'payments:topup_create' as topup_url %}
+{% url 'payments:topup_history' as topup_history_url %}
+{% url 'support:dispute_list' as disputes_url %}
+{% url 'admin:index' as admin_url %}
+{% with app=request.resolver_match.app_name url_name=request.resolver_match.url_name %}
+<header class="site-header sticky top-0 z-40 border-b border-slate-200 bg-white/85 backdrop-blur">
+  <div class="header-inner mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
+    <a href="{{ board_url|default:'/' }}" class="me-auto flex items-center gap-2 rounded-lg text-lg font-extrabold tracking-tight text-slate-900">
+      <span aria-hidden="true" class="grid h-8 w-8 place-items-center rounded-lg bg-brand-600 text-white">C</span>
+      <span>Campus<span class="text-brand-700">Go</span></span>
+    </a>
+
+    <nav class="site-nav" aria-label="Navigasi utama">
+      <button class="menu-button btn-ghost border border-slate-300" type="button"
+              popovertarget="site-menu" popovertargetaction="toggle" aria-controls="site-menu">
+        <span aria-hidden="true">☰</span><span>Menu</span>
+      </button>
+      <ul id="site-menu" class="site-menu text-sm" popover="auto">
+        {% if board_url %}
+        <li><a href="{{ board_url }}" class="nav-link" {% if app == 'orders' and url_name == 'listing_list' %}aria-current="page"{% endif %}>Papan</a></li>
+        {% endif %}
+        {% if user.is_authenticated %}
+          {% if my_orders_url %}
+          <li><a href="{{ my_orders_url }}" class="nav-link" {% if url_name == 'my_orders' %}aria-current="page"{% endif %}>Pesanan Saya</a></li>
+          {% endif %}
+          {% if disputes_url %}
+          <li><a href="{{ disputes_url }}" class="nav-link" {% if app == 'support' %}aria-current="page"{% endif %}>Bantuan</a></li>
+          {% endif %}
+          {% if create_url %}
+          <li class="collapsed-only md:hidden"><a href="{{ create_url }}" class="nav-link !font-semibold !text-brand-700">+ Buat Postingan</a></li>
+          {% endif %}
+          {% if user.is_staff and admin_url %}
+          <li><a href="{{ admin_url }}" class="nav-link !text-amber-800"><span aria-hidden="true">⚖️</span>&nbsp;Admin</a></li>
+          {% endif %}
+        {% endif %}
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      {% if user.is_authenticated %}
+        {% if topup_url %}
+        <a href="{{ topup_url }}"
+           class="hidden min-h-11 sm:inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 transition hover:border-brand-600 hover:text-brand-700">
+          <span class="sr-only">Saldo:</span><span aria-hidden="true" class="text-brand-600">●</span> Rp {{ user.saldo|intcomma }}
+        </a>
+        {% endif %}
+        {% if create_url %}<a href="{{ create_url }}" class="btn-primary hidden md:inline-flex">+ Buat Postingan</a>{% endif %}
+
+        <button type="button" popovertarget="account-menu" aria-controls="account-menu" aria-expanded="false"
+                class="account-button grid h-11 w-11 cursor-pointer place-items-center rounded-full bg-brand-100 font-bold text-brand-700 transition hover:ring-4 hover:ring-brand-500/30">
+          <span aria-hidden="true">{{ user.username|slice:":1"|upper }}</span>
+          <span class="sr-only">Menu akun {{ user.username }}</span>
+        </button>
+        <div id="account-menu" class="account-menu text-sm" popover="auto">
+          <div class="border-b border-slate-100 px-3 pt-1 pb-3">
+            <p class="truncate font-semibold text-slate-900">{{ user.get_full_name|default:user.username }}</p>
+            <p class="truncate text-xs text-slate-600">@{{ user.username }}{% if user.is_staff %} · Admin{% endif %}</p>
+            <p class="mt-2 text-xs text-slate-600">Saldo <strong class="text-sm text-slate-900">Rp {{ user.saldo|intcomma }}</strong></p>
+          </div>
+          <ul class="py-1">
+            <li><a href="{% url 'users:profile' %}" class="nav-link" {% if url_name == 'profile' %}aria-current="page"{% endif %}>Profil</a></li>
+            {% if topup_url %}<li><a href="{{ topup_url }}" class="nav-link">Top-up saldo</a></li>{% endif %}
+            {% if topup_history_url %}<li><a href="{{ topup_history_url }}" class="nav-link">Riwayat top-up</a></li>{% endif %}
+          </ul>
+          <form method="post" action="{% url 'users:logout' %}" class="border-t border-slate-100 pt-1">
+            {% csrf_token %}
+            <button type="submit" class="nav-link w-full cursor-pointer !text-red-700 hover:!bg-red-50">Keluar</button>
+          </form>
+        </div>
+      {% else %}
+        <a href="{% url 'users:login' %}" class="btn-ghost">Masuk</a>
+        <a href="{% url 'users:register' %}" class="btn-primary">Daftar</a>
+      {% endif %}
+    </div>
+  </div>
+</header>
+{% endwith %}

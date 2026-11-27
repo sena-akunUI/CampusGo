@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'users',
     'orders',
     'payments',
@@ -58,7 +59,7 @@ ROOT_URLCONF = 'CampusGo.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -106,9 +107,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'id'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Jakarta'
 
 USE_I18N = True
 
@@ -126,6 +127,11 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.User'
+
+# Login/logout global (halaman dari app users).
+LOGIN_URL = 'users:login'
+LOGIN_REDIRECT_URL = 'orders:listing_list'
+LOGOUT_REDIRECT_URL = 'users:login'
 # Upload file (bukti transfer top-up)
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
